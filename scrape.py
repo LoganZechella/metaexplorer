@@ -1,14 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
-import json
 
 def process_url(url):
     # Format the URL
     url = url.lower()
     if url.startswith("www."):
         url = "https://" + url
-    else:
-        url = "https://www." + url.split("https://")[1]
+    elif not url.startswith("http"):
+        url = "https://www." + url
 
     # Scrape the metadata
     metadata = {}
@@ -28,17 +27,14 @@ def process_url(url):
                 metadata[meta['name']] = meta['content']
 
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred while fetching the URL: {e}")
-
+        metadata['error'] = f"An error occurred while fetching the URL: {e}"
+    print(metadata)
     return metadata
 
-def scrape_urls(url_list):
+def run(url_list):
+    # This function will be called by the Flask app
     results = []
     for url in url_list:
-        results.append(process_url(url))
+        metadata = process_url(url)
+        results.append(metadata)
     return results
-
-url_list = ['www.google.com', 'www.github.com', 'https://stackoverflow.com']
-metadata_results = scrape_urls(url_list)
-
-print(json.dumps(metadata_results, indent=4))
